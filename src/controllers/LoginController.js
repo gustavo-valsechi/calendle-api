@@ -8,12 +8,13 @@ const UserModel = mongoose.model('users');
 const SALT_ROUNDS = 10;
 
 class LoginController {
-
   async login(req, res) {
     const { emailPhone, password } = req.body;
 
     if (!emailPhone || !password) {
-      return res.status(400).json({ error: true, message: 'Email/telefone e senha são obrigatórios!' });
+      return res
+        .status(400)
+        .json({ error: true, message: 'Email/telefone e senha são obrigatórios!' });
     }
 
     try {
@@ -54,7 +55,9 @@ class LoginController {
 
       const { password: _, ...userWithoutPassword } = user.toObject();
 
-      return res.status(200).json({ user: userWithoutPassword, message: 'Registro encontrado!', error: false });
+      return res
+        .status(200)
+        .json({ user: userWithoutPassword, message: 'Registro encontrado!', error: false });
     } catch (error) {
       return res.status(500).json({ error: true, message: 'Erro ao buscar usuário!' });
     }
@@ -64,7 +67,9 @@ class LoginController {
     const { name, emailPhone, password } = req.body;
 
     if (!name || !emailPhone || !password) {
-      return res.status(400).json({ error: true, message: 'Nome, email/telefone e senha são obrigatórios!' });
+      return res
+        .status(400)
+        .json({ error: true, message: 'Nome, email/telefone e senha são obrigatórios!' });
     }
 
     try {
@@ -74,9 +79,13 @@ class LoginController {
 
       if (existingUser) {
         if (existingUser.name === name) {
-          return res.status(409).json({ message: 'Já existe um usuário com este nome!', error: true });
+          return res
+            .status(409)
+            .json({ message: 'Já existe um usuário com este nome!', error: true });
         }
-        return res.status(409).json({ message: 'Já existe um usuário com este email/telefone!', error: true });
+        return res
+          .status(409)
+          .json({ message: 'Já existe um usuário com este email/telefone!', error: true });
       }
 
       const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);

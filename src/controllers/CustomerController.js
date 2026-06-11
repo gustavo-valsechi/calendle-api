@@ -4,10 +4,10 @@ require('../models/Customer');
 const Customer = mongoose.model('Customer');
 
 class CustomerController {
-
   _getDuplicateConflictMessage(existingCustomer, { email, phone, cpf }) {
     if (existingCustomer.email === email) return 'Já existe um cliente com este email!';
-    if (existingCustomer.phone === phone) return 'Já existe um cliente com este número de telefone!';
+    if (existingCustomer.phone === phone)
+      return 'Já existe um cliente com este número de telefone!';
     if (existingCustomer.cpf === cpf) return 'Já existe um cliente com este CPF!';
     return null;
   }
@@ -25,7 +25,9 @@ class CustomerController {
     const { name, phone, cpf, email } = req.body;
 
     if (!name || !phone || !cpf || !email) {
-      return res.status(400).json({ error: true, message: 'Nome, telefone, CPF e email são obrigatórios!' });
+      return res
+        .status(400)
+        .json({ error: true, message: 'Nome, telefone, CPF e email são obrigatórios!' });
     }
 
     try {
@@ -34,7 +36,11 @@ class CustomerController {
       });
 
       if (existingCustomer) {
-        const conflictMessage = this._getDuplicateConflictMessage(existingCustomer, { email, phone, cpf });
+        const conflictMessage = this._getDuplicateConflictMessage(existingCustomer, {
+          email,
+          phone,
+          cpf,
+        });
         return res.status(409).json({ message: conflictMessage, error: true });
       }
 

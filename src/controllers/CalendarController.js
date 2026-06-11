@@ -4,7 +4,6 @@ require('../models/Calender');
 const Calendar = mongoose.model('Calendar');
 
 class CalendarController {
-
   async listAll(req, res) {
     try {
       const calendars = await Calendar.find();
@@ -18,7 +17,12 @@ class CalendarController {
     const { uuid_customer, title, description, dt_start, dt_end } = req.body;
 
     if (!uuid_customer || !title || !dt_start || !dt_end) {
-      return res.status(400).json({ error: true, message: 'uuid_customer, title, dt_start e dt_end são obrigatórios!' });
+      return res
+        .status(400)
+        .json({
+          error: true,
+          message: 'uuid_customer, title, dt_start e dt_end são obrigatórios!',
+        });
     }
 
     try {
