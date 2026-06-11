@@ -1,25 +1,28 @@
-const express = require('express')
-const router = express.Router()
+const express = require('express');
+const router = express.Router();
 
+const authMiddleware = require('../middleware/auth');
 const CustomerController = require('../controllers/CustomerController');
 const LoginController = require('../controllers/LoginController');
 const CalendarController = require('../controllers/CalendarController');
 
-// Login
-router.post('/login/register', LoginController.Post)
-router.post('/login', LoginController.User)
-router.get('/login/:uuid', LoginController.searchRegister)
+// Rotas públicas
+router.post('/login/register', LoginController.register);
+router.post('/login', LoginController.login);
 
-//clientes
-router.get('/customer', CustomerController.Get)
-router.get('/customer/:uuid', CustomerController.searchRegister)
-router.post('/customer', CustomerController.Post)
-router.put('/customer/:uuid', CustomerController.Put)
+// Rotas protegidas
+router.use(authMiddleware);
 
-//Calendário
-router.get('/calendar',CalendarController.Get)
-router.get('/calendar/:uuid',CalendarController.searchRegister)
-router.post('/calendar',CalendarController.Post)
-router.put('/calendar/:uuid',CalendarController.Put)
+router.get('/login/:uuid', LoginController.findByUuid);
 
-module.exports = router
+router.get('/customer', CustomerController.listAll);
+router.get('/customer/:uuid', CustomerController.findByUuid);
+router.post('/customer', CustomerController.create);
+router.put('/customer/:uuid', CustomerController.update);
+
+router.get('/calendar', CalendarController.listAll);
+router.get('/calendar/:uuid', CalendarController.findByUuid);
+router.post('/calendar', CalendarController.create);
+router.put('/calendar/:uuid', CalendarController.update);
+
+module.exports = router;

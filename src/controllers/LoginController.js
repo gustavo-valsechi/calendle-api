@@ -1,111 +1,93 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
-require("../models/User");
-const User = mongoose.model("users");
+require('../models/User');
+const UserModel = mongoose.model('users');
 
+const SALT_ROUNDS = 10;
 
-class LoginController{
+class LoginController {
 
+  async login(req, res) {
+    const { emailPhone, password } = req.body;
 
-  async User(req, res) {
-    const { emailPhone,password } = req.body;
+    if (!emailPhone || !password) {
+      return res.status(400).json({ error: true, message: 'Email/telefone e senha são obrigatórios!' });
+    }
 
     try {
-      console.log(emailPhone, password);
-      const user = await User.findOne({ emailPhone });
-  
+      const user = await UserModel.findOne({ emailPhone });
+
       if (!user) {
-        console.log("Usuário não encontrado");
-        return res.status(200).json({ error: true , message: "Usuário não encontrado!" });
+        return res.status(404).json({ error: true, message: 'Usuário não encontrado!' });
       }
 
-        if(password === user.password )
-          return res.status(200).json({ error: false, message: "Usuário logado com sucesso!", user});
-        else 
-          return res.status(200).json({ error: true , message: "Senha incorreta!"});
-    
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      if (!passwordMatch) {
+        return res.status(401).json({ error: true, message: 'Senha incorreta!' });
+      }
+
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '8h' });
+      const { password: _, ...userWithoutPassword } = user.toObject();
+
+      return res.status(200).json({
+        error: false,
+        message: 'Usuário logado com sucesso!',
+        user: userWithoutPassword,
+        token,
+      });
     } catch (error) {
-      console.error(error);
-      return res.status(200).json({ error: true , message: "Erro ao verificar o usuário!" });
+      return res.status(500).json({ error: true, message: 'Erro ao verificar o usuário!' });
     }
   }
 
-  async searchRegister(req,res){
-		
-		const {uuid} = req.params;
+  async findByUuid(req, res) {
+    const { uuid } = req.params;
 
-		if (!req.body) {
-			return res
-			  .status(200).json({ 
-					message: "Id não informado!",
-					error: true
-				});
-		  }
+    try {
+      const user = await UserModel.findOne({ uuid });
 
-		console.log(uuid);
-		const user = await User.findOne({uuid: uuid});
-	  
-		if (!user) {
-		  return res.status(200).json({ 
-			message: "Registro não encontrado!", 
-			error: true
-		});
-		}
-
-		return res
-		  .status(200).json({
-				user, 
-				message: "Registro encontrado!", 
-				error: false 
-			});
-	  }
-
-
-    async Post(req, res) {
-      const { name, emailPhone, password } = req.body;
-  
-      const user = new User({
-        name,
-        emailPhone,
-        password,
-      });
-  
-      const auxUser = await User.findOne({
-        $or: [
-          { name: user.name },
-          { emailPhone: user.emailPhone },
-        ],
-      });
-  
-      if (auxUser) {
-        if (auxUser.name === user.name) {
-          return res.status(200).json({
-            message: "Já existe um cliente com este nome!",
-            error: true,
-          });
-        } else if (auxUser.emailPhone === user.emailPhone) {
-          return res.status(200).json({
-            message: "Já existe um cliente com este email!",
-            error: true,
-          });
-        }
+      if (!user) {
+        return res.status(404).json({ message: 'Registro não encontrado!', error: true });
       }
-  
-      try {
-        await user.save();
-        return res.status(200).json({
-          message: "Usuário cadastrado!",
-          error: false,
-        });
-      } catch (error) {
-        return res.status(200).json({
-          message: "Erro ao cadastrar usuário!",
-          error: true,
-        });
-      }
+
+      const { password: _, ...userWithoutPassword } = user.toObject();
+
+      return res.status(200).json({ user: userWithoutPassword, message: 'Registro encontrado!', error: false });
+    } catch (error) {
+      return res.status(500).json({ error: true, message: 'Erro ao buscar usuário!' });
+    }
+  }
+
+  async register(req, res) {
+    const { name, emailPhone, password } = req.body;
+
+    if (!name || !emailPhone || !password) {
+      return res.status(400).json({ error: true, message: 'Nome, email/telefone e senha são obrigatórios!' });
     }
 
-  
+    try {
+      const existingUser = await UserModel.findOne({
+        $or: [{ name }, { emailPhone }],
+      });
+
+      if (existingUser) {
+        if (existingUser.name === name) {
+          return res.status(409).json({ message: 'Já existe um usuário com este nome!', error: true });
+        }
+        return res.status(409).json({ message: 'Já existe um usuário com este email/telefone!', error: true });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+      const user = new UserModel({ name, emailPhone, password: hashedPassword });
+      await user.save();
+
+      return res.status(201).json({ message: 'Usuário cadastrado!', error: false });
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao cadastrar usuário!', error: true });
+    }
+  }
 }
 
 module.exports = new LoginController();
