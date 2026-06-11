@@ -174,7 +174,7 @@ tests/
 | Branch     | Descrição                              |
 |------------|----------------------------------------|
 | `original` | Versão original do projeto sem refatoração |
-| `main`     | Versão refatorada e com testes         |
+| `refatorado`     | Versão refatorada e com testes         |
 
 ---
 
