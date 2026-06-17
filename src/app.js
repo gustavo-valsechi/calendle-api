@@ -1,17 +1,19 @@
+require('dotenv').config();
 const express = require('express');
-const server = express();
 const bodyParser = require('body-parser');
-const router = require(`./routes/Router`)
-const cors = require('cors')
+const cors = require('cors');
+const router = require('./routes/Router');
 
-const PORT = process.env.PORT || 5555
+require('./database/Index');
 
-server.use(cors())
-server.use(bodyParser.json())
-server.use(bodyParser.urlencoded({ extended: true }))
+const server = express();
+const PORT = process.env.PORT || 5555;
 
-server.use(router)
+server.use(cors());
+server.use(bodyParser.json());
+server.use(bodyParser.urlencoded({ extended: true }));
+server.use(router);
 
 server.listen(PORT, () => {
-    console.log(`> Servidor rodando na porta: ${PORT}`)
-})
+  console.log(`> Servidor rodando na porta: ${PORT}`);
+});

@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
-mongoose.connect("mongodb+srv://sa:admin@apb-backend.zyqp1bd.mongodb.net/", {
+mongoose.connect(process.env.MONGODB_URI, {
   useUnifiedTopology: true,
-  useNewUrlParser: true 
+  useNewUrlParser: true,
 });
 
 mongoose.Promise = global.Promise;
